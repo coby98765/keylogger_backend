@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "logger_backend"
+version = "0.1.0"
+description = "A Flask app for handling encrypted data and pandas operations"
+authors = ["@coby98765"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Flask = "^3.0.0"
+cryptography = "^41.0.5"
+pandas = "^2.1.4"
