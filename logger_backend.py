@@ -44,6 +44,7 @@ def hello_world():
 
 @app.route("/connection/<mac>")
 def connection_alert(mac):
+    print(mac)
     if not mac:
         return jsonify({"error": "MAC address required"}), 400
 
