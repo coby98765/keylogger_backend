@@ -1,3 +1,5 @@
+# from crypt import methods
+
 from flask import Flask,jsonify,request
 from cryptography.fernet import Fernet
 import os
@@ -12,6 +14,28 @@ app = Flask(__name__)
 KEYS_FILE = "DB/keys.xlsx"
 LOG_FILE = "DB/logs.xlsx"
 Connection_FILE = os.path.abspath("./DB/connection.xlsx")
+ADMIN_FILE = "DB/admin.xlsx"
+
+def get_admin(username, password):
+    if not os.path.exists(ADMIN_FILE):
+        return {"error": "File not found"}, 400
+
+    df = pd.read_excel(ADMIN_FILE, dtype={'password': str})
+
+    required_columns = ['username', 'password', 'token']
+    if not all(col in df.columns for col in required_columns):
+        return {"error": "Missing required columns"}, 400
+
+    matching_row = df[(df['username'] == username) & (df['password'].astype(str) == password)]
+
+    if matching_row.empty:
+        return {"error": "User not found or incorrect credentials"}, 401
+
+    # Convert token to string to avoid Flask's TypeError
+    token = str(matching_row.iloc[0]['token'])
+
+    return {"token": token}, 200  # Return JSON-friendly format
+
 
 def load_keys():
     """Load keys from the Excel file into a dictionary."""
@@ -72,9 +96,17 @@ def connection_alert(mac):
     print(f"Updated {mac} at {timestamp}")  # Debugging output
     return "True"
 
-# @app.route("/connection")
-# def connection_alert():
-#     return "True"
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    print(data)
+
+    username = data.get("username")
+    password = str(data.get("password"))
+
+    response, status_code = get_admin(username, password)  # Unpack response and status code
+
+    return jsonify(response), status_code  # Ensure JSON response with status
 
 
 @app.route('/user/<username>')
